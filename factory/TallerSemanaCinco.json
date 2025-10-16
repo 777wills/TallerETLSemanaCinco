@@ -1,0 +1,9 @@
+{
+	"name": "TallerSemanaCinco",
+	"location": "brazilsouth",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "77c55a20-420c-4a04-9bcc-204819dee967",
+		"tenantId": "e994072b-523e-4bfe-86e2-442c5e10b244"
+	}
+}
