@@ -25,6 +25,9 @@
 				},
 				{
 					"name": "OneHotEncodeColumns"
+				},
+				{
+					"name": "SelectFinalColumns"
 				}
 			],
 			"scriptLines": [
@@ -59,7 +62,39 @@
 				"          housing_rent = iif(housing == 'rent', 1, 0),",
 				"          housing_for_free = iif(housing == 'for free', 1, 0),",
 				"          sex_male = iif(sex == 'male', 1, 0),",
-				"          sex_female = iif(sex == 'female', 1, 0)) ~> OneHotEncodeColumns"
+				"          sex_female = iif(sex == 'female', 1, 0),",
+				"          marital_status_married = iif(marital_status == 'married', 1, 0),",
+				"          marital_status_separated = iif(marital_status == 'separated', 1, 0),",
+				"          marital_status_single = iif(marital_status == 'single', 1, 0),",
+				"          marital_status_widowed = iif(marital_status == 'widowed', 1, 0),",
+				"          job_skilled = iif(job == 'skilled employee / official', 1, 0),",
+				"          job_unskilled = iif(job == 'unskilled', 1, 0),",
+				"          job_management = iif(job == 'management / highly skilled', 1, 0)) ~> OneHotEncodeColumns",
+				"OneHotEncodeColumns select(mapColumn(",
+				"          existingchecking,",
+				"          duration,",
+				"          creditamount,",
+				"          savings,",
+				"          employmentsince,",
+				"          age,",
+				"          existingcredits,",
+				"          dependents,",
+				"          risk,",
+				"          housing_own,",
+				"          housing_rent,",
+				"          housing_for_free,",
+				"          sex_male,",
+				"          sex_female,",
+				"          marital_status_married,",
+				"          marital_status_separated,",
+				"          marital_status_single,",
+				"          marital_status_widowed,",
+				"          job_skilled,",
+				"          job_unskilled,",
+				"          job_management",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SelectFinalColumns"
 			]
 		}
 	}
