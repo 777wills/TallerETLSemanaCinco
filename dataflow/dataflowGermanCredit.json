@@ -1,0 +1,66 @@
+{
+	"name": "dataflowGermanCredit",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "GermanCredit",
+						"type": "DatasetReference"
+					},
+					"name": "GermanCredit"
+				}
+			],
+			"sinks": [],
+			"transformations": [
+				{
+					"name": "SplitSexAndMaritalStatus"
+				},
+				{
+					"name": "BinarizeRiskColumn"
+				},
+				{
+					"name": "OrdinalEncodeSavingsColumn"
+				},
+				{
+					"name": "OneHotEncodeColumns"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          existingchecking as string,",
+				"          duration as string,",
+				"          creditamount as string,",
+				"          savings as string,",
+				"          employmentsince as string,",
+				"          status_sex as string,",
+				"          age as string,",
+				"          housing as string,",
+				"          existingcredits as string,",
+				"          job as string,",
+				"          dependents as string,",
+				"          risk as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> GermanCredit",
+				"GermanCredit derive(sex = iif(startsWith(status_sex, 'female'), 'female', 'male'),",
+				"          marital_status = split(split(status_sex, ':')[2], '/')[size(split(split(status_sex, ':')[2], '/'))]) ~> SplitSexAndMaritalStatus",
+				"SplitSexAndMaritalStatus derive(risk = iif(risk == 'high risk', 1, 0)) ~> BinarizeRiskColumn",
+				"BinarizeRiskColumn derive(savings = case(",
+				"    savings == 'unknown', 0,",
+				"    savings == 'little', 1,",
+				"    savings == 'moderate', 2,",
+				"    savings == 'high', 3,",
+				"    savings == 'very high', 4",
+				")) ~> OrdinalEncodeSavingsColumn",
+				"OrdinalEncodeSavingsColumn derive(housing_own = iif(housing == 'own', 1, 0),",
+				"          housing_rent = iif(housing == 'rent', 1, 0),",
+				"          housing_for_free = iif(housing == 'for free', 1, 0),",
+				"          sex_male = iif(sex == 'male', 1, 0),",
+				"          sex_female = iif(sex == 'female', 1, 0)) ~> OneHotEncodeColumns"
+			]
+		}
+	}
+}
