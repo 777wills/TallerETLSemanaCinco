@@ -1,0 +1,16 @@
+{
+	"name": "GERMAN_RISK",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AzureSQL_DB",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "GERMAN_RISK"
+		}
+	}
+}
