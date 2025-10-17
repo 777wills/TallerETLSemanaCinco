@@ -1,0 +1,341 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "TallerSemanaCinco"
+		},
+		"AzureBlobStorage1_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureBlobStorage1'"
+		},
+		"LS_AzureSQL_DB_password": {
+			"type": "secureString",
+			"metadata": "Secure string for 'password' of 'LS_AzureSQL_DB'"
+		},
+		"LS_AzureSQL_DB_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "icesiserverwills.database.windows.net"
+		},
+		"LS_AzureSQL_DB_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "icesiDB"
+		},
+		"LS_AzureSQL_DB_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "willsadmin"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "dataflowGermanCredit",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "dataflowGermanCredit",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"GermanCredit": {},
+									"sink1": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/dataflowGermanCredit')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/GERMAN_RISK')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_AzureSQL_DB",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "GERMAN_RISK"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_AzureSQL_DB')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/GermanCredit')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureBlobStorage1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "german_credit_data.csv",
+						"container": "germancreditdata"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "existingchecking",
+						"type": "String"
+					},
+					{
+						"name": "duration",
+						"type": "String"
+					},
+					{
+						"name": "creditamount",
+						"type": "String"
+					},
+					{
+						"name": "savings",
+						"type": "String"
+					},
+					{
+						"name": "employmentsince",
+						"type": "String"
+					},
+					{
+						"name": "status_sex",
+						"type": "String"
+					},
+					{
+						"name": "age",
+						"type": "String"
+					},
+					{
+						"name": "housing",
+						"type": "String"
+					},
+					{
+						"name": "existingcredits",
+						"type": "String"
+					},
+					{
+						"name": "job",
+						"type": "String"
+					},
+					{
+						"name": "dependents",
+						"type": "String"
+					},
+					{
+						"name": "risk",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureBlobStorage1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureBlobStorage1')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('AzureBlobStorage1_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/LS_AzureSQL_DB')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"server": "[parameters('LS_AzureSQL_DB_properties_typeProperties_server')]",
+					"database": "[parameters('LS_AzureSQL_DB_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": true,
+					"authenticationType": "SQL",
+					"userName": "[parameters('LS_AzureSQL_DB_properties_typeProperties_userName')]",
+					"password": {
+						"type": "SecureString",
+						"value": "[parameters('LS_AzureSQL_DB_password')]"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dataflowGermanCredit')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "GermanCredit",
+								"type": "DatasetReference"
+							},
+							"name": "GermanCredit"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "GERMAN_RISK",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "SplitSexAndMaritalStatus"
+						},
+						{
+							"name": "BinarizeRiskColumn"
+						},
+						{
+							"name": "OrdinalEncodeSavingsColumn"
+						},
+						{
+							"name": "OneHotEncodeColumns"
+						},
+						{
+							"name": "SelectFinalColumns"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          existingchecking as string,",
+						"          duration as string,",
+						"          creditamount as string,",
+						"          savings as string,",
+						"          employmentsince as string,",
+						"          status_sex as string,",
+						"          age as string,",
+						"          housing as string,",
+						"          existingcredits as string,",
+						"          job as string,",
+						"          dependents as string,",
+						"          risk as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     ignoreNoFilesFound: false) ~> GermanCredit",
+						"GermanCredit derive(sex = iif(startsWith(status_sex, 'female'), 'female', 'male'),",
+						"          marital_status = split(split(status_sex, ':')[2], '/')[size(split(split(status_sex, ':')[2], '/'))]) ~> SplitSexAndMaritalStatus",
+						"SplitSexAndMaritalStatus derive(risk = iif(risk == 'high risk', 1, 0)) ~> BinarizeRiskColumn",
+						"BinarizeRiskColumn derive(savings = case(",
+						"    savings == 'unknown', 0,",
+						"    savings == 'little', 1,",
+						"    savings == 'moderate', 2,",
+						"    savings == 'high', 3,",
+						"    savings == 'very high', 4",
+						")) ~> OrdinalEncodeSavingsColumn",
+						"OrdinalEncodeSavingsColumn derive(housing_own = iif(housing == 'own', 1, 0),",
+						"          housing_rent = iif(housing == 'rent', 1, 0),",
+						"          housing_for_free = iif(housing == 'for free', 1, 0),",
+						"          sex_male = iif(sex == 'male', 1, 0),",
+						"          sex_female = iif(sex == 'female', 1, 0),",
+						"          marital_status_married = iif(marital_status == 'married', 1, 0),",
+						"          marital_status_separated = iif(marital_status == 'separated', 1, 0),",
+						"          marital_status_single = iif(marital_status == 'single', 1, 0),",
+						"          marital_status_widowed = iif(marital_status == 'widowed', 1, 0),",
+						"          job_skilled = iif(job == 'skilled employee / official', 1, 0),",
+						"          job_unskilled = iif(job == 'unskilled', 1, 0),",
+						"          job_management = iif(job == 'management / highly skilled', 1, 0)) ~> OneHotEncodeColumns",
+						"OneHotEncodeColumns select(mapColumn(",
+						"          existingchecking,",
+						"          duration,",
+						"          creditamount,",
+						"          savings,",
+						"          employmentsince,",
+						"          age,",
+						"          existingcredits,",
+						"          dependents,",
+						"          risk,",
+						"          housing_own,",
+						"          housing_rent,",
+						"          housing_for_free,",
+						"          sex_male,",
+						"          sex_female,",
+						"          marital_status_married,",
+						"          marital_status_separated,",
+						"          marital_status_single,",
+						"          marital_status_widowed,",
+						"          job_skilled,",
+						"          job_unskilled,",
+						"          job_management",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SelectFinalColumns",
+						"SelectFinalColumns sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     recreate:true,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError') ~> sink1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/GermanCredit')]",
+				"[concat(variables('factoryId'), '/datasets/GERMAN_RISK')]"
+			]
+		}
+	]
+}
